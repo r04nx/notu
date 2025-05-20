@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Notu{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Your Profile</h1>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+                <button class="close-alert">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="profile-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-cover" id="profile-cover"></div>
+            <div class="profile-avatar">
+                <div class="avatar-circle">
+                    <span class="initials">{{ current_user.username[0]|upper }}</span>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h2>{{ current_user.username }}</h2>
+                <p class="profile-email">{{ current_user.email }}</p>
+                <p class="profile-date">Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+            </div>
+        </div>
+        
+        <div class="profile-body">
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ current_user.notes.count() }}</div>
+                    <div class="stat-label">Total Notes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ current_user.notes.filter_by(is_public=True).count() }}</div>
+                    <div class="stat-label">Public Notes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ current_user.notes.filter_by(is_pinned=True).count() }}</div>
+                    <div class="stat-label">Pinned Notes</div>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+                <a href="{{ url_for('main.index') }}" class="profile-btn">
+                    <i class="fas fa-sticky-note"></i> View All Notes
+                </a>
+                <a href="{{ url_for('main.new_note') }}" class="profile-btn">
+                    <i class="fas fa-plus"></i> Create New Note
+                </a>
+                <a href="#" class="profile-btn" id="edit-profile-btn">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recent-activity">
+        <h3>Recent Activity</h3>
+        <div class="activity-timeline">
+            {% set recent_notes = current_user.notes.order_by(Note.updated_at.desc()).limit(5).all() %}
+            {% if recent_notes %}
+                {% for note in recent_notes %}
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">
+                                <a href="{{ url_for('main.view_note', note_id=note.id) }}">{{ note.title }}</a>
+                            </div>
+                            <div class="activity-time">{{ note.updated_at.strftime('%B %d, %Y at %H:%M') }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-activity">
+                    <p>No recent activity found.</p>
+                    <a href="{{ url_for('main.new_note') }}" class="btn btn-primary">Create your first note</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    .profile-card {
+        background-color: var(--background-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        overflow: hidden;
+    }
+    
+    .profile-header {
+        position: relative;
+        padding-bottom: 1rem;
+    }
+    
+    .profile-cover {
+        height: 150px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+    
+    .profile-cover::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5));
+    }
+    
+    .profile-avatar {
+        position: absolute;
+        bottom: -30px;
+        left: 2rem;
+        z-index: 2;
+    }
+    
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid var(--background-white);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .initials {
+        font-size: 42px;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .profile-info {
+        padding: 0.5rem 2rem 0 8rem;
+    }
+    
+    .profile-info h2 {
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+    
+    .profile-email, .profile-date {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .profile-body {
+        padding: 1.5rem 2rem 2rem;
+    }
+    
+    .profile-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--divider-color);
+        padding-bottom: 1.5rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+    
+    .profile-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .profile-btn {
+        padding: 0.75rem 1.25rem;
+        background-color: var(--background-light);
+        color: var(--text-primary);
+        border-radius: var(--border-radius-md);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-btn:hover {
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    
+    .recent-activity {
+        background-color: var(--background-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        padding: 2rem;
+    }
+    
+    .recent-activity h3 {
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--divider-color);
+        padding-bottom: 0.75rem;
+    }
+    
+    .activity-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        background-color: var(--primary-light);
+        color: var(--primary-dark);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .activity-content {
+        flex-grow: 1;
+    }
+    
+    .activity-title a {
+        color: var(--text-primary);
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .activity-title a:hover {
+        color: var(--primary-color);
+    }
+    
+    .activity-time {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .empty-activity {
+        text-align: center;
+        padding: 2rem 0;
+        color: var(--text-secondary);
+    }
+    
+    @media (max-width: 768px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Animation for profile elements
+        $('.profile-card').addClass('animate__animated animate__fadeIn');
+        $('.recent-activity').addClass('animate__animated animate__fadeIn animate__delay-1s');
+        
+        // Close alert messages
+        $('.close-alert').on('click', function() {
+            $(this).parent().fadeOut(300);
+        });
+        
+        // Set profile cover background image
+        $.ajax({
+            url: '{{ url_for("main.random_background") }}',
+            method: 'GET',
+            success: function(response) {
+                if (response && response.url) {
+                    $('#profile-cover').css({
+                        'background-image': 'url(' + response.url + ')',
+                        'background-size': 'cover',
+                        'background-position': 'center'
+                    });
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

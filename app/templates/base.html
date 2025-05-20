@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Notu - Beautiful Note Taking{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- TinyMCE (with API key) -->
+    <script src="https://cdn.tiny.cloud/1/hixxy1z9kmgoohc57o33967zliut9jjgpel378se1oojya7u/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='img/notu-logo.svg') }}" alt="Notu Logo">
+                    <h1>Notu</h1>
+                </div>
+            </div>
+            
+            <div class="sidebar-content">
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="{{ url_for('main.index') }}" class="nav-link{% if request.path == url_for('main.index') %} active{% endif %}">
+                            <i class="fas fa-home"></i> Home
+                        </a></li>
+                        <li><a href="{{ url_for('main.new_note') }}" class="nav-link{% if request.path == url_for('main.new_note') %} active{% endif %}">
+                            <i class="fas fa-plus-circle"></i> New Note
+                        </a></li>
+                        <li><a href="{{ url_for('main.compact_notes_view') }}" class="nav-link{% if request.path == url_for('main.compact_notes_view') %} active{% endif %}">
+                            <i class="fas fa-list"></i> Compact View
+                        </a></li>
+                        <li><a href="{{ url_for('main.shared_notes') }}" class="nav-link{% if request.path == url_for('main.shared_notes') %} active{% endif %}">
+                            <i class="fas fa-share-alt"></i> Shared Notes
+                        </a></li>
+                    </ul>
+                </nav>
+                
+                <div class="tags-section">
+                    <h3>Tags</h3>
+                    <div class="tags-list" id="tags-list">
+                        <!-- Tags will be loaded dynamically -->
+                        <div class="loading-tags">Loading tags...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <p>&copy; 2025 Notu</p>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="search-container">
+                    <form action="{{ url_for('main.search_notes') }}" method="GET">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="q" placeholder="Search notes..." value="{{ search_query if search_query }}">
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="user-actions">
+                    <div class="theme-toggle">
+                        <button id="theme-toggle-btn">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="auth-buttons">
+                        {% if current_user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="dropdown-toggle">
+                                <span class="user-initial">{{ current_user.username[0]|upper }}</span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="{{ url_for('auth.profile') }}" class="dropdown-item">
+                                    <i class="fas fa-user"></i> Profile
+                                </a>
+                                <a href="{{ url_for('auth.logout') }}" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+            
+            <div class="content-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                                <button class="close-alert">&times;</button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

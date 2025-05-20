@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Notu - {{ note.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ note.title }}</h1>
+    <div class="note-actions-header">
+        <button class="pin-btn" data-note-id="{{ note.id }}" data-is-pinned="{{ note.is_pinned|lower }}">
+            <i class="fas {% if note.is_pinned %}fa-thumbtack{% else %}fa-thumbtack unpinned{% endif %}"></i>
+            {% if note.is_pinned %}Pinned{% else %}Pin{% endif %}
+        </button>
+        <button class="share-btn btn {% if note.is_public %}btn-success{% else %}btn-secondary{% endif %}" data-note-id="{{ note.id }}" data-is-public="{{ note.is_public|lower }}">
+            <i class="fas {% if note.is_public %}fa-lock-open{% else %}fa-lock{% endif %}"></i>
+            {% if note.is_public %}Public{% else %}Make Public{% endif %}
+        </button>
+        <a href="{{ url_for('main.edit_note', note_id=note.id) }}" class="btn btn-secondary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <form action="{{ url_for('main.delete_note', note_id=note.id) }}" method="POST" class="delete-form">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="note-view-container" 
+     style="background-color: {{ note.color }}; 
+            {% if note.background_image %}
+            background-image: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), url('{{ note.background_image }}');
+            background-size: cover;
+            background-position: center;
+            {% endif %}">
+    <div class="note-metadata">
+        <div class="note-dates">
+            <div>Created: {{ note.created_at.strftime('%b %d, %Y %H:%M') }}</div>
+            <div>Updated: {{ note.updated_at.strftime('%b %d, %Y %H:%M') }}</div>
+        </div>
+        {% if note.tags %}
+            <div class="note-tags">
+                {% for tag in note.tags %}
+                    <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="note-content">
+        {{ note.content|safe }}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Pin/unpin note
+        $('.pin-btn').click(function(e) {
+            e.preventDefault();
+            
+            const noteId = $(this).data('note-id');
+            const $pinBtn = $(this);
+            
+            $.ajax({
+                url: `/note/${noteId}/toggle-pin`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.is_pinned) {
+                        $pinBtn.find('i').removeClass('unpinned').addClass('fa-thumbtack');
+                        $pinBtn.text(' Pinned');
+                    } else {
+                        $pinBtn.find('i').addClass('unpinned');
+                        $pinBtn.text(' Pin');
+                    }
+                }
+            });
+        });
+        
+        // Toggle public sharing
+        $('.share-btn').click(function(e) {
+            e.preventDefault();
+            
+            const noteId = $(this).data('note-id');
+            const $shareBtn = $(this);
+            
+            $.ajax({
+                url: `/note/${noteId}/share`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.is_public) {
+                        $shareBtn.find('i').removeClass('fa-lock').addClass('fa-lock-open');
+                        $shareBtn.removeClass('btn-secondary').addClass('btn-success');
+                        $shareBtn.text(' Public');
+                        
+                        // Show share URL
+                        if (!$('#share-url-container').length) {
+                            const shareUrlHtml = `
+                                <div id="share-url-container" class="share-url-container">
+                                    <p>Share this note with others:</p>
+                                    <div class="share-url-input">
+                                        <input type="text" id="share-url" value="${response.share_url}" readonly>
+                                        <button id="copy-url" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            $('.note-metadata').after(shareUrlHtml);
+                            
+                            // Copy URL functionality
+                            $('#copy-url').click(function() {
+                                const shareUrlInput = document.getElementById('share-url');
+                                shareUrlInput.select();
+                                document.execCommand('copy');
+                                $(this).html('<i class="fas fa-check"></i> Copied!');
+                                setTimeout(() => {
+                                    $(this).html('<i class="fas fa-copy"></i> Copy');
+                                }, 2000);
+                            });
+                        } else {
+                            $('#share-url').val(response.share_url);
+                            $('#share-url-container').show();
+                        }
+                    } else {
+                        $shareBtn.find('i').removeClass('fa-lock-open').addClass('fa-lock');
+                        $shareBtn.removeClass('btn-success').addClass('btn-secondary');
+                        $shareBtn.text(' Make Public');
+                        $('#share-url-container').hide();
+                    }
+                }
+            });
+        });
+        
+        // Show share URL if already public
+        if ($('.share-btn').data('is-public') === true) {
+            $.ajax({
+                url: `/note/${$('.share-btn').data('note-id')}/share`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.is_public && response.share_url) {
+                        const shareUrlHtml = `
+                            <div id="share-url-container" class="share-url-container">
+                                <p>Share this note with others:</p>
+                                <div class="share-url-input">
+                                    <input type="text" id="share-url" value="${response.share_url}" readonly>
+                                    <button id="copy-url" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        $('.note-metadata').after(shareUrlHtml);
+                        
+                        // Copy URL functionality
+                        $('#copy-url').click(function() {
+                            const shareUrlInput = document.getElementById('share-url');
+                            shareUrlInput.select();
+                            document.execCommand('copy');
+                            $(this).html('<i class="fas fa-check"></i> Copied!');
+                            setTimeout(() => {
+                                $(this).html('<i class="fas fa-copy"></i> Copy');
+                            }, 2000);
+                        });
+                    }
+                }
+            });
+        }
+        
+        // Delete confirmation
+        $('.delete-form').submit(function(e) {
+            if (!confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

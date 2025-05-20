@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Shared Notes | Notu{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Shared Notes</h1>
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to My Notes
+    </a>
+</div>
+
+{% if notes %}
+    <div class="shared-notes-grid">
+        {% for note in notes %}
+            <div class="shared-note-card" 
+                 style="background-color: {{ note.color }}; 
+                        {% if note.background_image %}
+                        background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('{{ note.background_image }}');
+                        background-size: cover;
+                        background-position: center;
+                        {% endif %}">
+                <div class="shared-note-meta">
+                    <span class="shared-note-views"><i class="fas fa-eye"></i> {{ note.view_count }}</span>
+                    <span class="shared-note-date">{{ note.created_at.strftime('%b %d, %Y') }}</span>
+                </div>
+                
+                <a href="{{ url_for('main.public_note', slug=note.slug) }}" class="shared-note-link">
+                    <h2 class="shared-note-title">{{ note.title }}</h2>
+                    <div class="shared-note-preview">
+                        {{ note.content|striptags|truncate(150) }}
+                    </div>
+                </a>
+                
+                <div class="shared-note-footer">
+                    {% if note.tags %}
+                        <div class="note-tags">
+                            {% for tag in note.tags %}
+                                <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-share-alt"></i>
+        </div>
+        <h2>No shared notes yet</h2>
+        <p>Make some of your notes public to see them here</p>
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Go to My Notes</a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .shared-notes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+    
+    .shared-note-card {
+        background-color: var(--background-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 4px 12px var(--shadow-color);
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        transition: all var(--transition-speed);
+        position: relative;
+        overflow: hidden;
+        height: 280px;
+    }
+    
+    .shared-note-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px var(--shadow-color);
+    }
+    
+    .shared-note-meta {
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .shared-note-link {
+        color: var(--text-primary);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .shared-note-title {
+        margin-bottom: var(--spacing-sm);
+        font-size: 20px;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    .shared-note-preview {
+        color: var(--text-secondary);
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        -webkit-box-orient: vertical;
+    }
+    
+    .shared-note-footer {
+        margin-top: auto;
+    }
+</style>
+{% endblock %}

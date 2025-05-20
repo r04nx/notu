@@ -1,0 +1,54 @@
+{% extends "auth/auth_base.html" %}
+
+{% block title %}Register - Notu{% endblock %}
+
+{% block auth_content %}
+<div class="auth-form-header animate__animated animate__fadeInDown">
+    <h2>Create Account</h2>
+    <p>Join Notu and start organizing your notes</p>
+</div>
+
+<form method="POST" action="{{ url_for('auth.register') }}" class="auth-form animate__animated animate__fadeInUp">
+    <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" class="auth-input" id="username" name="username" required>
+    </div>
+    
+    <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" class="auth-input" id="email" name="email" required>
+    </div>
+    
+    <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" class="auth-input" id="password" name="password" required>
+    </div>
+    
+    <div class="input-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" class="auth-input" id="confirm_password" name="confirm_password" required>
+    </div>
+    
+    <button type="submit" class="auth-btn animate__animated animate__pulse animate__delay-1s">Create Account</button>
+</form>
+
+<div class="auth-links animate__animated animate__fadeIn animate__delay-1s">
+    <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+</div>
+
+<div class="auth-divider animate__animated animate__fadeIn animate__delay-1s">
+    <span>or sign up with</span>
+</div>
+
+<div class="social-login animate__animated animate__fadeIn animate__delay-2s">
+    <button class="social-btn google" title="Sign up with Google">
+        <i class="fab fa-google"></i>
+    </button>
+    <button class="social-btn facebook" title="Sign up with Facebook">
+        <i class="fab fa-facebook-f"></i>
+    </button>
+    <button class="social-btn twitter" title="Sign up with Twitter">
+        <i class="fab fa-twitter"></i>
+    </button>
+</div>
+{% endblock %}
