@@ -29,6 +29,9 @@ Notu is an elegant and feature-rich note-taking application built with Flask and
     <td><img src="app/static/img/screenshots/Screenshot from 2025-05-20 21-18-52.png" alt="Profile Page" width="400"></td>
     <td><img src="app/static/img/screenshots/Screenshot from 2025-05-20 21-18-58.png" alt="Dark Mode" width="400"></td>
   </tr>
+  <tr>
+    <td colspan="2"><img src="app/static/img/screenshots/Screenshot from 2025-05-20 21-33-34.png" alt="Note with Custom Background" width="800"></td>
+  </tr>
 </table>
 
 ## 🚀 Installation
@@ -68,7 +71,13 @@ python create_admin.py
 
 ## ⚙️ Configuration
 
-Create a `.env` file in the app directory to configure your application:
+A `.env.example` file is provided in the repository. Copy it to create your own `.env` file:
+
+```bash
+cp .env.example app/.env
+```
+
+Then edit the `.env` file with your specific configuration:
 
 ```
 FLASK_APP=app
@@ -76,11 +85,13 @@ FLASK_ENV=development
 SECRET_KEY=your_secret_key_here
 DATABASE_URL=postgresql://username:password@localhost:5432/notu_db
 UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+TINYMCE_API_KEY=your_tinymce_api_key_here
 ```
 
 - Replace `your_secret_key_here` with a secure random string
 - Update the database URL with your PostgreSQL credentials
 - (Optional) Add your Unsplash API key to enable dynamic background images
+- (Optional) Add your TinyMCE API key for enhanced editor features
 
 ## 🏃‍♂️ Running the Application
 
